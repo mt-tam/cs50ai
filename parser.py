@@ -1,7 +1,7 @@
 import nltk
 from nltk import word_tokenize
 import sys
-nltk.download('punkt')
+#nltk.download('punkt')
 
 TERMINALS = """
 Adj -> "country" | "dreadful" | "enigmatical" | "little" | "moist" | "red"
@@ -17,11 +17,11 @@ V -> "smiled" | "tell" | "were"
 """
 
 NONTERMINALS = """
-S -> NP VP | NP VP Conj NP VP | NP VP Conj VP
+S -> NP VP | S Conj S | S Conj VP
 
-NP -> N | Det N | N PP | Det N PP | Det Adj N | Det Adj Adj Adj N
+NP -> N | Det NP | NP PP | Adj NP
 
-VP -> V | V NP | V PP | V NP PP | Adv V | Adv V NP | V Adv | V PP Adv
+VP -> V | VP NP | VP PP | Adv VP | VP Adv
 
 PP -> P NP | P S
 """
