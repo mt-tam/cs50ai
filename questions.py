@@ -6,7 +6,7 @@ import math
 #nltk.download('stopwords')
 
 FILE_MATCHES = 1
-SENTENCE_MATCHES = 3
+SENTENCE_MATCHES = 1
 
 
 def main():
@@ -78,8 +78,19 @@ def tokenize(document):
     words = [word for word in words if not word in nltk.corpus.stopwords.words("english")]
 
     # Filter punctuation
-    words = [word for word in words if not word in string.punctuation]
-    return words
+    exclude = set(string.punctuation)
+    new_words = []
+    for w in words: 
+        # Exclude punctuation characters from each word
+        new_word = ''.join(ch for ch in w if ch not in exclude)
+        # If nothing left, then don't add word back
+        if new_word == '':
+            continue
+        # Else add word back without punctuation
+        new_words.append(new_word)
+                
+    #print(new_words)
+    return new_words
     
 
 def compute_idfs(documents):
