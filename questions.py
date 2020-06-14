@@ -26,7 +26,7 @@ def main():
     i = 0
     while i < 5:
         # Prompt user for query
-        query = set(tokenize(input("Query: ")))
+        query = set(tokenize(input("\nQuery: ")))
 
         # Determine top file matches according to TF-IDF
         filenames = top_files(query, file_words, file_idfs, n=FILE_MATCHES)
@@ -48,6 +48,7 @@ def main():
         for match in matches:
             print(match)
         i += 1
+    print("\n Thank you and goodbye...")
 
 
 def load_files(directory):
@@ -177,23 +178,38 @@ def top_sentences(query, sentences, idfs, n):
                 # add idf to new dict's total sentence score
                 new_dict[sentence] += idf            
 
-    # rank sentences according to inverse document frequency
     ranked_sentences = sorted(new_dict, key=new_dict.get, reverse = True)
- 
-    # check if idf score is a tie
-    if len(new_dict.values()) == len(set(new_dict.values())): 
-        return ranked_sentences[:n] # return initial rank if no duplicates  
+    
+    # recreate a dict with top idf sentences
+    temp_dict = dict()
+    for sentence in ranked_sentences[:2]: 
+        idf = new_dict[sentence]
+        temp_dict[sentence] = idf
 
-    # else, calculate query term density (QTD)
+    #print(temp_dict)
+    
+    # check if top idf score is a tie
+    top_score = new_dict[ranked_sentences[0]]
+    ties = 0
+    for sentence in new_dict: 
+        score = new_dict[sentence]
+        if score == top_score:
+            ties += 1
+    
+    # If no tie, then just return current rank based on idf
+    if ties == 1:
+        return ranked_sentences[:n]
+    
+    # else, find rank based on query term density (QTD)
     else:
         qtd_dict = dict() 
-        for sentence in new_dict: 
+        for sentence in temp_dict: 
             intersection = [word for word in sentences[sentence] if word in query] # find all matching words
             query_density = len(intersection) / len(sentences[sentence]) # calculate density
             qtd_dict[sentence] = query_density
-
-    # rank sentences according to query term density
+    #print(qtd_dict)
     ranked_sentences = sorted(qtd_dict, key=qtd_dict.get, reverse = True)
+    #print(ranked_sentences[:n])
 
     return ranked_sentences[:n]
 
