@@ -23,28 +23,31 @@ def main():
     }
     file_idfs = compute_idfs(file_words)
 
-    # Prompt user for query
-    query = set(tokenize(input("Query: ")))
+    i = 0
+    while i < 5:
+        # Prompt user for query
+        query = set(tokenize(input("Query: ")))
 
-    # Determine top file matches according to TF-IDF
-    filenames = top_files(query, file_words, file_idfs, n=FILE_MATCHES)
+        # Determine top file matches according to TF-IDF
+        filenames = top_files(query, file_words, file_idfs, n=FILE_MATCHES)
 
-    # Extract sentences from top files
-    sentences = dict()
-    for filename in filenames:
-        for passage in files[filename].split("\n"):
-            for sentence in nltk.sent_tokenize(passage):
-                tokens = tokenize(sentence)
-                if tokens:
-                    sentences[sentence] = tokens
+        # Extract sentences from top files
+        sentences = dict()
+        for filename in filenames:
+            for passage in files[filename].split("\n"):
+                for sentence in nltk.sent_tokenize(passage):
+                    tokens = tokenize(sentence)
+                    if tokens:
+                        sentences[sentence] = tokens
 
-    # Compute IDF values across sentences
-    idfs = compute_idfs(sentences)
+        # Compute IDF values across sentences
+        idfs = compute_idfs(sentences)
 
-    # Determine top sentence matches
-    matches = top_sentences(query, sentences, idfs, n=SENTENCE_MATCHES)
-    for match in matches:
-        print(match)
+        # Determine top sentence matches
+        matches = top_sentences(query, sentences, idfs, n=SENTENCE_MATCHES)
+        for match in matches:
+            print(match)
+        i += 1
 
 
 def load_files(directory):
@@ -52,7 +55,7 @@ def load_files(directory):
     Given a directory name, return a dictionary mapping the filename of each
     `.txt` file inside that directory to the file's contents as a string.
     """
-    
+    print("Loading a corpus of six documents...")
     new_dict = dict()
 
     for filename in os.listdir(directory):
@@ -122,7 +125,7 @@ def top_files(query, files, idfs, n):
     to their IDF values), return a list of the filenames of the the `n` top
     files that match the query, ranked according to tf-idf.
     """
-    
+    print("Finding most relevant answer...")
     new_dict = dict()
     
     # For each file, calculate the sum of all words' tf-idf score
@@ -174,29 +177,23 @@ def top_sentences(query, sentences, idfs, n):
                 # add idf to new dict's total sentence score
                 new_dict[sentence] += idf            
 
+    # rank sentences according to inverse document frequency
     ranked_sentences = sorted(new_dict, key=new_dict.get, reverse = True)
-    #print(ranked_sentences[:n])
-
-    # recreate a dict with top idf sentences
-    temp_dict = dict()
-    for sentence in ranked_sentences[:n]: 
-        idf = new_dict[sentence]
-        temp_dict[sentence] = idf
-
+ 
     # check if idf score is a tie
-    if len(temp_dict.values()) == len(set(temp_dict.values())): 
+    if len(new_dict.values()) == len(set(new_dict.values())): 
         return ranked_sentences[:n] # return initial rank if no duplicates  
 
     # else, calculate query term density (QTD)
     else:
         qtd_dict = dict() 
-        for sentence in temp_dict: 
+        for sentence in new_dict: 
             intersection = [word for word in sentences[sentence] if word in query] # find all matching words
             query_density = len(intersection) / len(sentences[sentence]) # calculate density
             qtd_dict[sentence] = query_density
 
+    # rank sentences according to query term density
     ranked_sentences = sorted(qtd_dict, key=qtd_dict.get, reverse = True)
-    #print(ranked_sentences[:n])
 
     return ranked_sentences[:n]
 
